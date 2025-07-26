@@ -6,6 +6,12 @@ name = "pypi"
 [packages]
 jupyter = "*"
 lab = "*"
+seaborn = "*"
+pandas = "*"
+scipy = "*"
+scikit-learn = "*"
+jolib = "*"
+river = "*"
 
 [dev-packages]
 
