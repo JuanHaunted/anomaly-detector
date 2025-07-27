@@ -11,13 +11,12 @@ class SQLiteConnector:
         with sqlite3.connect(self.db_path) as conn:
             df.to_sql(table_name, conn, if_exists='replace', index=False)
 
-    def insert_record(self, record: Dict, table_name: str) -> None:
+    def insert_record(self, record: pd.DataFrame, table_name: str) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             #Process data
-            pd_record = pd.DataFrame([record])
-            query = f"INSERT INTO {table_name} ({', '.join(pd_record.columns)}) VALUES ({', '.join(['?' for _ in pd_record.columns])})"
-            cursor.execute(query, tuple(pd_record.iloc[0]))
+            query = f"INSERT INTO {table_name} ({', '.join(record.columns)}) VALUES ({', '.join(['?' for _ in record.columns])})"
+            cursor.execute(query, tuple(record.iloc[0]))
 
     def fetch_all_records(self, table_name: str, limit: Optional[int] = None) -> pd.DataFrame:
         with sqlite3.connect(self.db_path) as conn:

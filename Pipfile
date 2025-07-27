@@ -12,6 +12,8 @@ scipy = "*"
 scikit-learn = "*"
 jolib = "*"
 river = "*"
+fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 
