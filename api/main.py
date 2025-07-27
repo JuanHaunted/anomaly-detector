@@ -1,9 +1,8 @@
-from pyexpat import model
 import pandas as pd
 import joblib
 import sys
 import os
-from typing import Dict
+from typing import Union
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -75,7 +74,7 @@ def predict_simple(transaction: Transaction):
 @app.post("/predict")
 def predict(transaction: Transaction):
     try:
-        # Realizamos la predicción con el modelo incremental sin actualizarlo
+        # Preparamos los datos de la transacción para la predicción
         transaction_df = pd.DataFrame(transaction.model_dump(), index=[0])
         transaction_df = add_feature_engineering_columns(transaction_df)
         features_to_transform = ['norm_amount', 'balance_ratio', 'amount_to_balance_ratio']
@@ -99,9 +98,13 @@ def predict(transaction: Transaction):
 
 # Endpoint para realizar la predicción y actualizar el modelo
 @app.post("/update")
-def predict(transaction: TransactionTrueLabel, add_to_db: bool = True):
+def predict(transaction: Union[Transaction, TransactionTrueLabel], add_to_db: bool = True):
+    has_label = False
+    if hasattr(transaction, 'is_anomaly'):
+        has_label = True
+
     try:
-        # Realizamos la predicción con el modelo incremental sin actualizarlo
+        # Preparamos los datos de la transacción para la predicción
         transaction_df = pd.DataFrame(transaction.model_dump(), index=[0])
         transaction_df = add_feature_engineering_columns(transaction_df)
         features_to_transform = ['norm_amount', 'balance_ratio', 'amount_to_balance_ratio']
@@ -114,9 +117,14 @@ def predict(transaction: TransactionTrueLabel, add_to_db: bool = True):
         prediction = max(prediction_proba, key=prediction_proba.get)
         confidence = prediction_proba.get(True, 0.0)
 
-        incremental_model.learn_one(X, transaction.is_anomaly)
 
         prediction = 1 if prediction else 0
+
+        # Actualizamos el modelo incremental con la nueva transacción (utilizando el label verdadero)
+        if has_label:
+            incremental_model.learn_one(X, transaction.is_anomaly)
+        else:
+            incremental_model.learn_one(X, prediction)
 
         if add_to_db:
             # Guardamos la transacción en la base de datos
