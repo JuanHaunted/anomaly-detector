@@ -102,6 +102,7 @@ def predict(transaction: Union[Transaction, TransactionTrueLabel], add_to_db: bo
     has_label = False
     if hasattr(transaction, 'is_anomaly'):
         has_label = True
+        true_label = transaction.is_anomaly
 
     try:
         # Preparamos los datos de la transacción para la predicción
@@ -122,7 +123,7 @@ def predict(transaction: Union[Transaction, TransactionTrueLabel], add_to_db: bo
 
         # Actualizamos el modelo incremental con la nueva transacción (utilizando el label verdadero)
         if has_label:
-            incremental_model.learn_one(X, transaction.is_anomaly)
+            incremental_model.learn_one(X, true_label)
         else:
             incremental_model.learn_one(X, prediction)
 
@@ -133,7 +134,7 @@ def predict(transaction: Union[Transaction, TransactionTrueLabel], add_to_db: bo
         return {"prediction": prediction,
         "confidence": f"{confidence:.2%}",
         "model_updated": True,
-        "matched": prediction == transaction.is_anomaly,
+        "matched":  prediction == transaction.is_anomaly if has_label else prediction,
         "added_to_db": add_to_db
         }
     except Exception as e:

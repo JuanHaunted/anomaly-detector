@@ -38,12 +38,11 @@ def train_incremental_model(dataset: pd.DataFrame) -> None:
         y_pred = model.predict_one(x)
         model.learn_one(x, y)
 
-                # Update the metrics with the prediction
+        # Update the metrics with the prediction
         if y_pred is not None:
             metrics.update(y, y_pred)
 
-        # Now, learn from the data
-        model.learn_one(x, y)
+
 
 
     print(f"Modelo entrenado con {len(train_data)} transacciones.")
